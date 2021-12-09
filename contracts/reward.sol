@@ -767,15 +767,24 @@ contract Reward is Ownable{
     mapping(address => uint256) public commentRewards;
     mapping(address => uint256) public postRewards;
     uint256 likeRewardRate = 1000000000000000000;
-     uint256 commentRewardRate = 100000000000000000;
-      uint256 postLikeRewardRate = 1000000000000000000;
+    uint256 commentRewardRate = 100000000000000000;
+    uint256 postLikeRewardRate = 1000000000000000000;
+    uint256 phase1RewardLimit = 125000000000000000000000000 ;
+    uint256 phase2RewardLimit = 500000000000000000000000000 ;
+    uint256 phase3RewardLimit = 875000000000000000000000000 ;
+    uint256 phase4RewardLimit = 1250000000000000000000000000 ;
+    uint256 phase5RewardLimit = 1750000000000000000000000000 ;
+    uint256 phase6RewardLimit = 2250000000000000000000000000 ;
     uint256 public minimumLikes =50;
     uint256 public minimumComments =50;
     uint256 public minimumPostLikes =50;
+    uint256 public startTime;
+    uint256 public totalRewardsDistributed;
     
-    constructor(address golToken, address _bot){
+    constructor(address golToken, address _bot, uint256 _startTime){
         gol = IERC20(golToken);
         bot = _bot;
+        startTime = _startTime;
     }
     
     
@@ -817,6 +826,34 @@ contract Reward is Ownable{
         minimumPostLikes = number;
       
     }
+
+    function getPhase() public view returns(uint256 phase){
+        require(block.timestamp > startTime,"Meme to Earn has't started yet");
+        if(block.timestamp < startTime + 2592000){
+          return(1);
+        }
+        else if(block.timestamp > startTime + 2592000 && block.timestamp < startTime + 5184000){
+           return(2);
+        }
+        else if(block.timestamp > startTime + 5184000 && block.timestamp < startTime + 7776000){
+           return(3);
+        }
+        else if(block.timestamp > startTime + 7776000 && block.timestamp < startTime + 10368000){
+           return(4);
+        }
+        else if(block.timestamp > startTime + 10368000 && block.timestamp < startTime + 12960000){
+           return(5);
+        }
+        else if(block.timestamp > startTime + 12960000 && block.timestamp < startTime + 15552000){
+           return(6);
+        }
+        else if(block.timestamp > startTime + 15552000 && block.timestamp < startTime + 18144000){
+           return(7);
+        }
+
+
+
+    }
     
     function payBot() external payable{
         require(msg.value>0,"Cannot deposit zero");
@@ -829,25 +866,86 @@ contract Reward is Ownable{
         bot = _botAddress;
     }
     function withdrawLikeRewards(address user, uint256 likes) external onlyBot(msg.sender){
+        uint256 phase = getPhase();
+        if(phase == 1){
+            require((totalRewardsDistributed + likes.mul(likeRewardRate)) <= phase1RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 2){
+            require((totalRewardsDistributed + likes.mul(likeRewardRate)) <= phase2RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 3){
+            require((totalRewardsDistributed + likes.mul(likeRewardRate)) <= phase3RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 4){
+             require((totalRewardsDistributed + likes.mul(likeRewardRate)) <= phase4RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 5){
+             require((totalRewardsDistributed + likes.mul(likeRewardRate)) <= phase5RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 6){
+            require((totalRewardsDistributed + likes.mul(likeRewardRate)) <= phase6RewardLimit, "Wait for next phase" );
+        }
         require(likes> minimumLikes,"Cannot withdraw before 50 likes");
         gol.transfer( user, likes.mul(likeRewardRate));
         likeRewards[user] = likeRewards[user].add(likes.mul(likeRewardRate));
+        totalRewardsDistributed = totalRewardsDistributed + likes.mul(likeRewardRate);
         emit likesRewarded(user, likes , likes.mul(likeRewardRate));
+      
         
     }
     
      function withdrawCommentRewards(address user, uint256 comments) external onlyBot(msg.sender){
+         uint256 phase = getPhase();
+        if(phase == 1){
+            require((totalRewardsDistributed + comments.mul(commentRewardRate)) <= phase1RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 2){
+            require((totalRewardsDistributed + comments.mul(commentRewardRate)) <= phase2RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 3){
+            require((totalRewardsDistributed + comments.mul(commentRewardRate)) <= phase3RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 4){
+             require((totalRewardsDistributed + comments.mul(commentRewardRate)) <= phase4RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 5){
+             require((totalRewardsDistributed +comments.mul(commentRewardRate)) <= phase5RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 6){
+            require((totalRewardsDistributed + comments.mul(commentRewardRate)) <= phase6RewardLimit, "Wait for next phase" );
+        }
         require(comments> minimumComments,"Cannot withdraw before 50 ccomments");
         gol.transfer(user, comments.mul(commentRewardRate));
         commentRewards[user] = commentRewards[user].add(comments.mul(commentRewardRate));
+         totalRewardsDistributed = totalRewardsDistributed + comments.mul(commentRewardRate);
         emit commentsRewarded(user, comments, comments.mul(commentRewardRate));
         
     }
     
      function withdrawPostRewards(address user,  uint256 likes) external onlyBot(msg.sender){
+         uint256 phase = getPhase();
+        if(phase == 1){
+            require((totalRewardsDistributed + likes.mul(postLikeRewardRate)) <= phase1RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 2){
+            require((totalRewardsDistributed + likes.mul(postLikeRewardRate)) <= phase2RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 3){
+            require((totalRewardsDistributed + likes.mul(postLikeRewardRate)) <= phase3RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 4){
+             require((totalRewardsDistributed + likes.mul(postLikeRewardRate)) <= phase4RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 5){
+             require((totalRewardsDistributed + likes.mul(postLikeRewardRate)) <= phase5RewardLimit, "Wait for next phase" );
+        }
+        else if(phase == 6){
+            require((totalRewardsDistributed + likes.mul(postLikeRewardRate)) <= phase6RewardLimit, "Wait for next phase" );
+        }
         require(likes> minimumPostLikes,"Cannot withdraw before 50 likes on post");
         gol.transfer( user, likes.mul(postLikeRewardRate));
         postRewards[user] = postRewards[user].add(likes.mul(postLikeRewardRate));
+        totalRewardsDistributed = totalRewardsDistributed + likes.mul(postLikeRewardRate);
         emit postRewarded(user, likes,likes.mul(postLikeRewardRate));
     }
 
